@@ -7,6 +7,7 @@ edition = "2021"
 [dependencies]
 base64 = "0.22"
 blsful = "2.5"
+blstrs_plus = "0.8.18"
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
 chrono = "0.4"
 hex = "0.4"

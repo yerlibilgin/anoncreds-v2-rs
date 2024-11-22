@@ -84,7 +84,7 @@ impl Signature {
             G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(&m_tick.to_be_bytes()[..], Self::DST);
         let mut exp = sk.x + sk.w * m_tick;
 
-        for (ski, m) in msgs.iter().zip(sk.y.iter()) {
+        for (m, ski) in msgs.iter().zip(sk.y.iter()) {
             exp += *ski * *m;
         }
         let sigma_2 = sigma_1 * exp;
@@ -129,6 +129,13 @@ impl Signature {
 
         // e(sigma_1, Y_m) == e(sigma_2, G2) or
         // e(sigma_1 + sigma_2, Y_m - G2) == GT_1
+
+        let lhs = pairing(&self.sigma_1.to_affine(), &y_m.to_affine());
+        let rhs = pairing( &self.sigma_2.to_affine(), &-G2Affine::generator());
+
+        println!("LHS: {:?}", lhs);
+        println!("RHS: {:?}", rhs);
+
         multi_miller_loop(&[
             (
                 &self.sigma_1.to_affine(),

@@ -203,10 +203,12 @@ impl Presentation {
             let proof = builder.gen_proof(challenge);
             proofs.insert(proof.id().clone(), proof);
         }
+
         for builder in builders.into_iter() {
             let proof = builder.gen_proof(challenge);
             proofs.insert(proof.id().clone(), proof);
         }
+
         let presentation = Self {
             proofs,
             challenge,

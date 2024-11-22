@@ -3,6 +3,7 @@ use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowl
 use blsful::inner_types::{ff::Field, Scalar};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
+use serde_json::json;
 
 /// This struct represents an Verifier of signatures.
 /// Provided are methods for generating a context to ask for revealed messages
@@ -43,8 +44,9 @@ fn pok_sig_proof_works() {
 
     let mut rng = rand_core::OsRng;
 
-    let (pk, sk) = Issuer::new_keys(4, &mut rng).unwrap();
+    let (pk, sk) = Issuer::new_keys(5, &mut rng).unwrap();
     let messages = [
+        Scalar::random(&mut rng),
         Scalar::random(&mut rng),
         Scalar::random(&mut rng),
         Scalar::random(&mut rng),
@@ -59,8 +61,9 @@ fn pok_sig_proof_works() {
     let proof_messages = [
         ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(messages[0])),
         ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(messages[1])),
-        ProofMessage::Revealed(messages[2]),
+        ProofMessage::Hidden(HiddenMessage::ExternalBlinding(messages[2], Scalar::from(5u64))),
         ProofMessage::Revealed(messages[3]),
+        ProofMessage::Revealed(messages[4]),
     ];
 
     let res = PokSignature::commit(signature, &pk, &proof_messages, &mut rng);
@@ -77,7 +80,7 @@ fn pok_sig_proof_works() {
     let res = pok_sig.generate_proof(challenge);
     assert!(res.is_ok());
 
-    let rvl_msgs = &[(2, messages[2]), (3, messages[3])];
+    let rvl_msgs = &[(3, messages[3]), (4, messages[4])];
     let proof = res.unwrap();
     assert!(proof.verify(rvl_msgs, &pk).is_ok());
 
@@ -88,8 +91,10 @@ fn pok_sig_proof_works() {
     let challenge2 = Scalar::from_bytes_wide(&tmp);
     assert_eq!(challenge, challenge2);
 
+    println!("Proof: {:}", serde_json::to_string_pretty(&proof).unwrap());
+
     assert!(Verifier::verify_signature_pok(
-        &[(2, messages[2]), (3, messages[3])][..],
+        &[(3, messages[3]), (4, messages[4])][..],
         &pk,
         proof,
         nonce,

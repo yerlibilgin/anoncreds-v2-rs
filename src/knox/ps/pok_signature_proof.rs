@@ -8,6 +8,7 @@ use core::ops::BitOr;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
+use std::time::Instant;
 
 /// The actual proof that is sent from prover to verifier.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -110,6 +111,19 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
 
         let j = G2Projective::sum_of_products(points.as_ref(), scalars.as_ref());
 
+
+        let instant = Instant::now();
+        let lhs = pairing(&self.sigma_1.to_affine(), &j.to_affine());
+        let rhs = pairing( &self.sigma_2.to_affine(), &G2Affine::generator());
+        let res = lhs == rhs;
+
+        println!("Elapsed:  {:?}", instant.elapsed().as_nanos());
+
+        println!("LHS: {:?}", lhs);
+        println!("RHS: {:?}", rhs);
+        println!("res: {:?}", res);
+
+        let instant = Instant::now();
         let res = multi_miller_loop(&[
             (&self.sigma_1.to_affine(), &G2Prepared::from(j.to_affine())),
             (
@@ -121,6 +135,9 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
         .is_identity()
         .unwrap_u8()
             == 1;
+
+        println!("Res: {}", res);
+        println!("Elapsed:  {:?}", instant.elapsed().as_nanos());
         if res {
             Ok(())
         } else {

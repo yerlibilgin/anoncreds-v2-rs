@@ -76,6 +76,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     ];
     let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)?;
 
+    println!("cred_schema: {:?}", cred_schema);
     let before = Instant::now();
     let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
     println!("key generation time = {:?}", before.elapsed());
